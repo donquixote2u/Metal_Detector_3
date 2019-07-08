@@ -28,13 +28,13 @@
 // Base tone frequency (speaker)
 #define BASE_TONE_FREQUENCY 280
 
-// Frequency delta threshold for fancy spinner to trigger
-#define SPINNER_THRESHOLD 700
+// Frequency delta threshold for ALERT to trigger
+#define ALERT_THRESHOLD 50
 
 // Pin definitions
-#define SENSITIVITY_POT_APIN 1
+#define SENSITIVITY_POT_APIN A0
 #define SPEAKER_PIN 2
-#define SPINNER_PIN 9
+#define ALERT_PIN 9
 #define TRIGGER_BTN_PIN 11
 #define RESET_BTN_PIN 12
 
@@ -67,6 +67,8 @@ SIGNAL(TIMER1_COMPA_vect)
 
 void setup()
 {
+  Serial.begin(115200); // Setup serial interface for test data outputs
+ 
   // Set WGM(Waveform Generation Mode) to 0 (Normal)
   TCCR1A = 0b00000000;
   
@@ -81,38 +83,47 @@ void setup()
   OCR1A = 1;
 
   pinMode(SPEAKER_PIN, OUTPUT);
-  pinMode(SPINNER_PIN, OUTPUT);
+  pinMode(ALERT_PIN, OUTPUT);
   pinMode(TRIGGER_BTN_PIN, INPUT_PULLUP);
   pinMode(RESET_BTN_PIN, INPUT_PULLUP);
+
+  // DEBUG ONLY - show adj pin value
+  Serial.print("adj=");
+  Serial.println(analogRead(SENSITIVITY_POT_APIN));
 }
 
 void loop()
 {
-  if (digitalRead(TRIGGER_BTN_PIN) == LOW)
+  // trigger button not implemented yet, constant operation
+  // if (digitalRead(TRIGGER_BTN_PIN) == LOW)
   {
     float sensitivity = mapFloat(analogRead(SENSITIVITY_POT_APIN), 0, 1023, 0.5, 10.0);
     int storedTimeDeltaDifference = (storedTimeDelta - signalTimeDelta) * sensitivity;
     tone(SPEAKER_PIN, BASE_TONE_FREQUENCY + storedTimeDeltaDifference);
 
-    if (storedTimeDeltaDifference > SPINNER_THRESHOLD)
+    Serial.print("val=");
+    Serial.println(storedTimeDeltaDifference);
+    if (storedTimeDeltaDifference > ALERT_THRESHOLD)
     {
-      digitalWrite(SPINNER_PIN, HIGH);
+      digitalWrite(ALERT_PIN, LOW);
     }
     else
     {
-      digitalWrite(SPINNER_PIN, LOW);
+      digitalWrite(ALERT_PIN, HIGH);
     }
   }
-  else
-  {
-    noTone(SPEAKER_PIN);
-    digitalWrite(SPINNER_PIN, LOW);
-  }
+  // trigger not implemented
+  // else
+  // {
+  //   noTone(SPEAKER_PIN);
+  //   digitalWrite(ALERT_PIN, HIGH);
+  // }
 
   if (digitalRead(RESET_BTN_PIN) == LOW)
   {
     storedTimeDelta = 0;
   }
+  delay(500);
 }
 
 float mapFloat(int input, int inMin, int inMax, float outMin, float outMax)
@@ -120,4 +131,3 @@ float mapFloat(int input, int inMin, int inMax, float outMin, float outMax)
   float scale = (float)(input - inMin) / (inMax - inMin);
   return ((outMax - outMin) * scale) + outMin;
 }
-

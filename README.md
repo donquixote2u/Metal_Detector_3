@@ -8,7 +8,9 @@
 
 Arduino code for a Colpitts oscillator based metal detector.
 
-See build tutorial & demo here:
+See build tutorial here
+https://www.allaboutcircuits.com/projects/metal-detector-with-arduino/
+& build video / demo here:
 https://youtu.be/KCGe9KNAWGM
 
 Full schematics here:
